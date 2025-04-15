@@ -22,7 +22,7 @@ const DISPLAY = 1;
 const LEFT_PULSE = 2;
 const NUM_MODES = LEFT_PULSE + 1;
 
-const howManyLines=20;
+const howManyLines=25;
 const howManyBeziers=5;
 const howManyPolys=5;
 let bezmaps=[]
@@ -40,14 +40,29 @@ function setup() {
   mic = new p5.AudioIn(); 
   mic.start(); // Load the library 
   pMapper = createProjectionMapper(this);
-
+  k=0;
   // initialize empty lines
   for (let i = 0; i < howManyLines; i++) {
     let lineMap = pMapper.createLineMap();
     lineMaps.push(lineMap);
 
     // decrease line width for higher stairs (farther away)
-    lineMap.lineW = map(i, 0, 1, 2, 3);
+    linewidth=4
+    k=k+1
+    if (k==1) {
+        lineMap.lineW = linewidth;
+    }
+    if (k==2) {
+        lineMap.lineW = linewidth*2;
+    }
+    if (k==3) {
+        lineMap.lineW = linewidth*3;
+    }
+    if (k==4) {
+        lineMap.lineW = linewidth*4;
+        k=0;
+    }
+    
 
     textFont(myFont);
 
@@ -79,15 +94,16 @@ function draw() {
   // display gradient lines
   let index = 0;
   for (const lineMap of lineMaps) {
-    let c = lerpColor(startC, endC, index / 9);
+    let c = lerpColor(startC, endC, index / howManyLines);
+    lineMap.displayNumber();
     getLineMode(lineMap, index++, c);
   }
   for (const bezMap of bezmaps) {
-    let c = lerpColor(startC, endC, index / 9);
+    let c = lerpColor(startC, endC, index / howManyLines);
     bezMap.display(c);
   }
   for (const polyMap of polyMaps) {
-    let c = lerpColor(startC, endC, index / 9);
+    let c = lerpColor(startC, endC, index / howManyLines);
     polyMap.display(c);
   }
 
