@@ -172,14 +172,14 @@ function keyPressed() {
       break;
 
     case "0":
-        //Create circleß
+        //Create circle
         console.log("creating dot");
         thisMap=pMapper.createBezierMap(4)
         lastObject=thisMap;
         console.log(thisMap);
         allObjects.circles.push(thisMap);
         objectCount.circles++;
-        lastType.push("circles");ß
+        lastType.push("circles");
         break;
     case "1":
         console.log("creating dot");
@@ -218,9 +218,11 @@ function keyPressed() {
         break;
         //create triangle
     case "4":
-        allObjects.quads.push(pMapper.createQuadMap(100, 100));
-        objectCount.quads++;
-        lastType.push("quads");
+        thisPoly=pMapper.createPolyMap(4)
+        
+        allObjects.polys.push(thisPoly);
+        objectCount.polys++;
+        lastType.push("polys");
         break;
         //create quad
     case "5":
@@ -244,9 +246,10 @@ function keyPressed() {
         break;
         //create poly
     case "8":
-        allObjects.polys.push(pMapper.createPolyMap(8));
-        objectCount.polys++;
-        lastType.push(   "polys");
+        allObjects.quads.push(pMapper.createQuadMap(100, 100));
+        objectCount.quads++;
+        lastType.push("quads");
+       
         break;
         //create poly
     case "9":
@@ -317,10 +320,20 @@ function keyPressed() {
         break;
     case "d":
         console.log("Deleting last object");
+        
+        console.log(pMapper.surfaces)
+        console.log(pMapper.lines)
         toDelete=lastType.pop();
         allObjects[toDelete].pop();
         objectCount[toDelete]--;
 
+        if (toDelete=="lines") {
+            pMapper.lines.pop();
+        }
+        else
+        {
+            pMapper.surfaces.pop();
+        }
 
         
   }
