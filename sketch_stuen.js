@@ -32,10 +32,11 @@ let allObjects = {"dots":[], "circles":[], "lines":[], "beziers":[], "polys":[],
 let objectCount= {"dots":0, "circles":0, "lines":0, "beziers":0, "polys":0, "triangles":0, "quads":0};
 let bezmaps=[]
 let polyMaps=[]
-let dots
+let dots;
 let startC, endC;
-
+let lastObject;
 let myFont;
+let lastType=[];
 
 function preload() {
   myFont = loadFont("Roboto.ttf");
@@ -171,24 +172,22 @@ function keyPressed() {
       break;
 
     case "0":
-        //Create circle
+        //Create circleß
         console.log("creating dot");
         thisMap=pMapper.createBezierMap(4)
-        size=prompt("Enter size", "100");
-        thisMap.width=size;
-        thisMap.height=size;
+        lastObject=thisMap;
         console.log(thisMap);
         allObjects.circles.push(thisMap);
         objectCount.circles++;
+        lastType.push("circles");ß
         break;
     case "1":
         console.log("creating dot");
         thisMap=pMapper.createBezierMap(2)
-        size=prompt("Enter size", "100");
-        thisMap.width=size;
-        thisMap.height=size;
+        lastObject=thisMap;
         allObjects.dots.push(thisMap);
         objectCount.dots++;
+        lastType.push("dots");
         break;
         //create dot
     case "2":
@@ -196,9 +195,12 @@ function keyPressed() {
             let lineMap = pMapper.createLineMap();
             
 
-            lineMap.lineW =  prompt("Enter line width", "10");;
+            lineMap.lineW =  prompt("Enter line width", "10");
+            
+            lastObject=lineMap;
             allObjects.lines.push(lineMap);
-            objectCount
+            objectCount.lines++;
+            lastType.push("lines");
             
             break;
             
@@ -209,57 +211,115 @@ function keyPressed() {
           
         //create line
     case "3":
-        allObjects.triangles.push(pMapper.createTriMap(100, 100));
+        thisMap=pMapper.createTriMap(100, 100)
+        lastType.push("triangles");
+        allObjects.triangles.push(thisMap);
         objectCount.triangles++;
         break;
         //create triangle
     case "4":
         allObjects.quads.push(pMapper.createQuadMap(100, 100));
         objectCount.quads++;
+        lastType.push("quads");
         break;
         //create quad
     case "5":
         thisPoly=pMapper.createPolyMap(5)
-        size=prompt("Enter size", "100");
-        thisPoly.width=size;
-        thisPoly.height=size;
+        
         allObjects.polys.push(thisPoly);
         objectCount.polys++;
+        lastType.push("polys");
         break;
         //create ploymap
     case "6":
             allObjects.polys.push(pMapper.createPolyMap(6));
             objectCount.polys++;
+            lastType.push("polys");
             break;
 
     case "7":
         allObjects.polys.push(pMapper.createPolyMap(7));
         objectCount.polys++;
+        lastType.push("polys");
         break;
         //create poly
     case "8":
         allObjects.polys.push(pMapper.createPolyMap(8));
         objectCount.polys++;
+        lastType.push(   "polys");
         break;
         //create poly
     case "9":
         allObjects.beziers.push(pMapper.createBezierMap(6));
         objectCount.beziers++;
+        lastType.push("beziers");
         break;
         //create bezier
 
     case "r":
+        let thisJson = { surfaces: [], lines: [] };
+        for (const surface of pMapper.surfaces) {
+            thisJson.surfaces.push(surface.getJson());
+          }
+      
+          for (const line of pMapper.lines) {
+            thisJson.lines.push(line.getJson());
+          }
+          console.log(thisJson);
+        localStorage.setItem("mapping", JSON.stringify(thisJson));
         localStorage.setItem("items", JSON.stringify(objectCount));
         break;
     case "p":
-        objectCount=JSON.parse(localStorage.getItem("items"));
-
-        
+        objectCountLoad=JSON.parse(localStorage.getItem("items"));
+        for (type in objectCountLoad) {
+            console.log("objectCountType" + type);
+            for (let i=0; i<objectCountLoad[type]; i++) {
+                console.log("Creating " + type);
+                if (type =="lines") {
+                    allObjects.lines.push(pMapper.createLineMap());
+                    objectCount.lines++;
+                }
+                else if (type =="beziers") {
+                    allObjects.beziers.push(pMapper.createBezierMap(5));
+                    objectCount.beziers++;
+                }
+                else if( type =="polys") { 
+                    allObjects.polys.push(pMapper.createPolyMap(5));
+                    objectCount.polys++;
+                }
+                else if (type =="triangles") {
+                    allObjects.triangles.push(pMapper.createTriMap(100,100));
+                    objectCount.triangles++;
+                }
+                else if (type =="quads") {
+                    allObjects.quads.push(pMapper.createQuadMap(100,100));
+                    objectCount.quads++;
+                }
+                else if (type =="dots") {
+                    allObjects.dots.push(pMapper.createBezierMap(2));
+                    objectCount.dots++;
+                }
+                else if (type =="circles") {
+                    allObjects.circles.push(pMapper.createBezierMap(4));
+                    objectCount.circles++;
+                }
+            }
+            
+        }
+        console.log(allObjects);
+        mapping=JSON.parse(localStorage.getItem("mapping"));
+        console.log(mapping);
+        pMapper.loadSurfaces(mapping);
+        pMapper.loadLines(mapping);
+        console.log(mapping);
+        console.log(pMapper);
         console.log(objectCount);
         break;
     case "d":
-        localStorage.clear();
-        break;
+        console.log("Deleting last object");
+        toDelete=lastType.pop();
+        allObjects[toDelete].pop();
+        objectCount[toDelete]--;
 
 
         
