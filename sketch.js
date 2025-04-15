@@ -1,127 +1,178 @@
 /*
-* p5.mapper
-* https://github.com/jdeboi/p5.mapper
-* 
-* Jenna deBoisblanc
-* jdeboi.com
-* 
-*/
+ * p5.mapper
+ * https://github.com/jdeboi/p5.mapper
+ *
+ * Jenna deBoisblanc
+ * jdeboi.com
+ *
+ */
 
-// projection mapping objects
 let pMapper;
-const lineMaps = [];
+let quadMap, triMap, lineMap, bezMap, polyMap;
 
-// line modes
-let lineMode = 0;
-const CENTER_PULSE = 0;
-const DISPLAY = 1;
-const LEFT_PULSE = 2;
-const NUM_MODES = LEFT_PULSE + 1;
-
-let startC, endC;
+let sel;
+let mode;
+let myFont;
+let img;
+let linemaps=[]
+let bezmaps=[]
+let mic;
+let sensitivity;
+let sens;
+let volHistory = [];
+function preload() {
+    myFont = loadFont('Roboto.ttf');
+}
 
 function setup() {
-    createCanvas(windowWidth, windowHeight, WEBGL);
+  createCanvas(windowWidth, windowHeight, WEBGL);
+  
+  mic = new p5.AudioIn(); 
+  mic.start(); // Load the library 
+  var vol = mic.getLevel();
 
-    pMapper = createProjectionMapper(this);
+  initSelection();
 
-    // initialize empty lines
-    for (let i = 0; i < 9; i++) {
-        let lineMap = pMapper.createLineMap();
-        lineMaps.push(lineMap);
+  // create mapper object
+  pMapper = createProjectionMapper(this);
+ 
+  console.log(this);
+  polyMap = pMapper.createPolyMap(5);
+  triMap = pMapper.createTriMap(300, 300);
+  quadMap = pMapper.createQuadMap(400, 400);
+  lineMap = pMapper.createLineMap();
+  bezMap = pMapper.createBezierMap();
 
-        // decrease line width for higher stairs (farther away)
-        lineMap.lineW = map(i, 0, 9, 20, 70);
-
-        // end cap display
-        // lineMap.setEndCapsOff();
-        // lineMap.setEndCapsOn();
-    }
-
-    pMapper.load("maps/map.json");
-
-    // initialize gradient colors
-    setStartColors();
+  // loads calibration in the "maps" directory
+  pMapper.load("maps/map.json");
 }
 
 function draw() {
-    background(0);
+  background(0);
+  displayFrameRate();
+  sensitivity = document.querySelector('#sensitivity').value;
+  volHistory.push(mic.getLevel());
+  sens = map(sensitivity, 0, 1, 1, 0);
 
-    cycleColors(300);
-    cycleLineMode(500);
-
-    // display gradient lines
-    let index = 0;
-    for (const lineMap of lineMaps) {
-        let c = lerpColor(startC, endC, index / 9);
-        getLineMode(lineMap, index++, c);
-    }
+  switch (mode) {
+    case "all":
+      lineMap.display(color("lime"));
+      quadMap.display(color("lime"));
+      triMap.displaySketch(rainbow);
+      bezMap.display(color("orange"));
+      polyMap.displaySketch(dots);
+      break;
+    case "solid":
+      lineMap.display(color("lime"));
+      quadMap.display(color("red"));
+      triMap.display(color("blue"));
+      bezMap.display(color("orange"));
+      polyMap.display(color("purple"));
+      break;
+    case "image":
+      lineMap.display(color("white"));
+  
+    case "sketch":
+      lineMap.display(color("white"));
+      quadMap.displaySketch(drawCoords);
+      triMap.displaySketch(drawCoords);
+      bezMap.displaySketch(drawCoords);
+      polyMap.displaySketch(drawCoords);
+      break;
+  }
 }
 
+function drawCoords(pg) {
+  pg.clear();
+  pg.push();
+  pg.background(0, 255, 0);
+  pg.fill(0);
 
-function getLineMode(l, index, c) {
-    let offset = index / 9 * 2 * PI;
-    let percent = pMapper.getOscillator(3, offset);
-    switch (lineMode) {
-        case LEFT_PULSE:
-            l.displayPercent(percent, c);
-            break;
-        case CENTER_PULSE:
-            l.displayCenterPulse(percent, c);
-            break;
-        case DISPLAY:
-            l.display(c);
-            break;
-        case WIDTH_PULSE:
-            l.displayPercentWidth(percent, c);
-            break;
-        default:
-            l.display(c);
-    }
+  for (let i = 0; i < 1000; i += 50) {
+    pg.text(i, i, 150);
+    pg.text(i, 150, i);
+  }
+  pg.fill(255);
+  pg.ellipse(mouseX, mouseY, 50);
+  pg.pop();
 }
 
-function setStartColors() {
-    colorMode(HSB, 100);
-    startC = color(random(100), 100, 100);
-    let endHue = (hue(startC) + random(25, 75)) % 100;
-    endC = color(endHue, 100, 100);
-    colorMode(RGB, 255);
+function dots(pg) {
+  randomSeed(0);
+  pg.clear();
+  pg.push();
+  pg.background("pink");
+  pg.fill(255);
+  pg.noStroke();
+  for (let i = 0; i < 60; i++) {
+    pg.ellipse(random(width), random(height), random(10, 80));
+  }
+  pg.pop();
 }
 
-function cycleColors(framesPerCycle) {
-    if (frameCount % framesPerCycle === 0) {
-        setStartColors();
-    }
-}
+function rainbow(pg) {
+  pg.clear();
+  pg.push();
+  pg.background("pink");
+  pg.colorMode(HSB, 255);
 
-function cycleLineMode(framesPerCycle) {
-    if (frameCount % framesPerCycle === 0) {
-        lineMode++;
-        lineMode %= NUM_MODES;
-    }
+  for (let i = 0; i < 1000; i++) {
+    pg.stroke(i % 255, 255, 255);
+    pg.line(i, 0, i, 300);
+  }
+  pg.pop();
 }
 
 function keyPressed() {
-    switch (key) {
-        case 'c':
-            pMapper.toggleCalibration();
-            break;
-        case 'f':
-            let fs = fullscreen();
-            fullscreen(!fs);
-            break;
-        case 'l':
-            pMapper.load("maps/map.json");
-            break;
+  switch (key) {
+    case "c":
+      pMapper.toggleCalibration();
+      break;
+    case "f":
+      let fs = fullscreen();
+      fullscreen(!fs);
+      break;
+    case "l":
+      pMapper.load("maps/map.json");
+      break;
 
-        case 's':
-            pMapper.save("map.json");
-            break;
-    }
+    case "s":
+      pMapper.save("map.json");
+      break;
+    case "a":
+        lineMapNew = pMapper.createLineMap();
+        lineMapNew.display(color("yellow"));
+        linemaps.push(lineMapNew);
+        console.log("new line created");
+        break;
+    case "p":
+        polymapNew= pMapper.createPolyMap(5);
+        polymapNew.display(color("yellow"));
+        polymaps.push(polymapNew)
+  }
 }
 
+function initSelection() {
+  mode = "all";
+  sel = createSelect();
+  sel.position(10, 10);
+  sel.option("all");
+  sel.option("solid");
+  sel.option("image");
+  sel.option("sketch");
+  sel.changed(mySelectEvent);
+}
+
+function mySelectEvent() {
+  mode = sel.value();
+}
 
 function windowResized() {
-    resizeCanvas(windowWidth, windowHeight);
+  resizeCanvas(windowWidth, windowHeight);
 }
 
+function displayFrameRate() {
+  fill(255);
+  noStroke();
+  //text(round(frameRate()), -width / 2 + 15, -height / 2 + 50);
+}
