@@ -113,10 +113,10 @@ function myDisplay(map, type = "surface", index=0) {
     displayControl = {
         "line":
         {
-            "-1": { "display_mode": "center_pulse", "ocilator": "sound", "color": lerpColor(startC, endC, map.id/allObjects.lines.length ), group: "lines" },
-            "0": { "display_mode": "display",  "ocilator": "sound","color": lerpColor(startC, endC, map.id/allObjects.lines.length) ,  group: "lines"},
+            "-1": { "display_mode": "center_pulse", "ocilator": "oscilate", "color": lerpColor(startC, endC, map.id/allObjects.lines.length ), group: "lines" },
+            "0": { "display_mode": "display",  "ocilator": "oscilate","color": lerpColor(startC, endC, map.id/allObjects.lines.length) ,  group: "lines"},
             "1": { "display_mode": "side_pulse",  "ocilator": "oscilate","color": lerpColor(startC, endC, map.id/allObjects.lines.length),  group: "lines" },
-            "2": { "display_mode": "width_pulse",  "ocilator": "sound","color": lerpColor(startC, endC,map.id/allObjects.lines.length) ,  group: "lines"}
+            "2": { "display_mode": "width_pulse",  "ocilator": "oscilate","color": lerpColor(startC, endC,map.id/allObjects.lines.length) ,  group: "lines"}
         },
         "surface":
         {
