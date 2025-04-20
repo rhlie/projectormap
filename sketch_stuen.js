@@ -64,7 +64,7 @@ function draw() {
     background(0);
     var vol = mic.getLevel();
 
-    cycleColors(300);
+    cycleColors(1000);
     
 
     // display gradient lines
